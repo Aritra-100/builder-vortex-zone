@@ -25,7 +25,7 @@ export function createServer() {
   app.post("/api/ai/yield", handleAiYield);
 
   // Market prices search (mock)
-  app.get("/api/market/prices", (await import("./routes/market-prices")).handleMarketPrices);
+  app.get("/api/market/prices", handleMarketPrices);
 
   return app;
 }
