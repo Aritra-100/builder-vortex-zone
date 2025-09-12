@@ -10,3 +10,21 @@
 export interface DemoResponse {
   message: string;
 }
+
+export interface AiYieldEstimateRequest {
+  cropType: string;
+  fieldSize: number;
+  unit: "acres" | "gunthas" | "hectares";
+  location?: {
+    name?: string;
+    latitude?: number;
+    longitude?: number;
+  };
+  locale?: "en" | "bn";
+}
+
+export interface AiYieldEstimateResponse {
+  estimatedYield: number; // in metric tons
+  unit: "tons";
+  note: string;
+}
