@@ -11,9 +11,9 @@ import {
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { motion, AnimatePresence } from "framer-motion";
-import { Droplets, MapPin, Sprout, Wheat, Compass, Repeat } from "lucide-react";
+import { Droplets, MapPin, Sprout, Wheat, Compass, Repeat, Search } from "lucide-react";
 import { useI18n } from "@/contexts/i18n";
-import type { AiYieldEstimateRequest, AiYieldEstimateResponse } from "@shared/api";
+import type { AiYieldEstimateRequest, AiYieldEstimateResponse, MarketPricesResponse } from "@shared/api";
 
 export default function Index() {
   const { t, locale } = useI18n();
@@ -27,6 +27,9 @@ export default function Index() {
   const [geocodeError, setGeocodeError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AiYieldEstimateResponse | null>(null);
+  const [priceQuery, setPriceQuery] = useState("");
+  const [prices, setPrices] = useState<MarketPricesResponse | null>(null);
+  const [searching, setSearching] = useState(false);
 
   // Attempt GPS on mount (non-blocking)
   useEffect(() => {
@@ -138,6 +141,32 @@ export default function Index() {
       setLoading(false);
     }
   };
+
+  // Fetch market prices when query changes (debounced)
+  useEffect(() => {
+    const q = priceQuery.trim();
+    if (!q) {
+      setPrices(null);
+      return;
+    }
+    let cancelled = false;
+    const id = setTimeout(async () => {
+      try {
+        setSearching(true);
+        const res = await fetch(`/api/market/prices?query=${encodeURIComponent(q)}`);
+        const data: MarketPricesResponse = await res.json();
+        if (!cancelled) setPrices(data);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        if (!cancelled) setSearching(false);
+      }
+    }, 400);
+    return () => {
+      cancelled = true;
+      clearTimeout(id);
+    };
+  }, [priceQuery]);
 
   const reset = () => {
     setSize("");
@@ -284,6 +313,55 @@ export default function Index() {
             </Card>
 
             <div className="lg:col-span-2 grid gap-6">
+              <Card className="p-6 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <Search className="h-6 w-6 text-emerald-700" />
+                  <h3 className="text-lg font-semibold text-emerald-900">{t("priceResults")}</h3>
+                </div>
+                <div className="mt-4 flex items-center gap-3">
+                  <Input
+                    value={priceQuery}
+                    onChange={(e) => setPriceQuery(e.target.value)}
+                    placeholder={t("searchPrices")}
+                    className="h-12 text-base"
+                  />
+                </div>
+                {searching && (
+                  <p className="mt-3 text-sm text-emerald-800/70">{t("calculating")}</p>
+                )}
+                {prices && prices.items.length > 0 && (
+                  <div className="mt-4 overflow-x-auto">
+                    <table className="min-w-full text-sm">
+                      <thead className="text-emerald-900">
+                        <tr className="text-left">
+                          <th className="py-2 pr-4">{t("cropType")}</th>
+                          <th className="py-2 pr-4">{t("market")}</th>
+                          <th className="py-2 pr-4">{t("state")}</th>
+                          <th className="py-2 pr-4">{t("date")}</th>
+                          <th className="py-2 pr-4">{t("min")}</th>
+                          <th className="py-2 pr-4">{t("modal")}</th>
+                          <th className="py-2 pr-4">{t("max")}</th>
+                          <th className="py-2 pr-4">{t("unitLabel")}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {prices.items.map((it, idx) => (
+                          <tr key={idx} className="border-t">
+                            <td className="py-2 pr-4">{it.crop}</td>
+                            <td className="py-2 pr-4">{it.market}</td>
+                            <td className="py-2 pr-4">{it.state}</td>
+                            <td className="py-2 pr-4">{new Date(it.date).toLocaleDateString()}</td>
+                            <td className="py-2 pr-4">{it.min}</td>
+                            <td className="py-2 pr-4">{it.modal}</td>
+                            <td className="py-2 pr-4">{it.max}</td>
+                            <td className="py-2 pr-4">{it.unit}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </Card>
               <Card className="p-6 shadow-sm">
                 <div className="flex items-center gap-3">
                   <Wheat className="h-6 w-6 text-emerald-700" />
