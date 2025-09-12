@@ -1,10 +1,9 @@
 import { Sprout } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useI18n } from "@/contexts/i18n";
+import LangSwitcher from "@/components/LangSwitcher";
 
 export default function Header() {
-  const { locale, setLocale, t } = useI18n();
-  const toggle = () => setLocale(locale === "en" ? "bn" : "en");
+  const { t } = useI18n();
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -16,9 +15,7 @@ export default function Header() {
           <span>{t("brand")}</span>
         </a>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={toggle} aria-label="Switch language">
-            {locale === "en" ? "বাংলা" : "EN"}
-          </Button>
+          <LangSwitcher />
         </div>
       </div>
     </header>
