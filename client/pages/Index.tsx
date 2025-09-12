@@ -1,62 +1,282 @@
-import { DemoResponse } from "@shared/api";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { motion, AnimatePresence } from "framer-motion";
+import { Droplets, MapPin, Sprout, Wheat, Compass, Repeat } from "lucide-react";
+import { useI18n } from "@/contexts/i18n";
+import type { AiYieldEstimateRequest, AiYieldEstimateResponse } from "@shared/api";
 
 export default function Index() {
-  const [exampleFromServer, setExampleFromServer] = useState("");
-  // Fetch users on component mount
+  const { t, locale } = useI18n();
+
+  const [crop, setCrop] = useState<string>("rice");
+  const [size, setSize] = useState<string>("");
+  const [unit, setUnit] = useState<string>("acres");
+  const [locationName, setLocationName] = useState<string>("");
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<AiYieldEstimateResponse | null>(null);
+
+  // Attempt GPS on mount (non-blocking)
   useEffect(() => {
-    fetchDemo();
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => {},
+      { enableHighAccuracy: true, timeout: 5000 },
+    );
   }, []);
 
-  // Example of how to fetch data from the server (if needed)
-  const fetchDemo = async () => {
+  const crops = useMemo(
+    () => [
+      { value: "rice", label: t("rice") },
+      { value: "wheat", label: t("wheat") },
+      { value: "maize", label: t("maize") },
+      { value: "others", label: t("others") },
+    ],
+    [locale],
+  );
+
+  const units = useMemo(
+    () => [
+      { value: "acres", label: t("acres") },
+      { value: "gunthas", label: t("gunthas") },
+      { value: "hectares", label: t("hectares") },
+    ],
+    [locale],
+  );
+
+  const detectLocation = async () => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => alert(t("gpsDenied")),
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  };
+
+  const onSubmit = async () => {
+    setLoading(true);
+    setResult(null);
     try {
-      const response = await fetch("/api/demo");
-      const data = (await response.json()) as DemoResponse;
-      setExampleFromServer(data.message);
-    } catch (error) {
-      console.error("Error fetching hello:", error);
+      const payload: AiYieldEstimateRequest = {
+        cropType: crop,
+        fieldSize: parseFloat(size),
+        unit,
+        location: {
+          name: locationName.trim() || undefined,
+          latitude: coords?.lat,
+          longitude: coords?.lng,
+        },
+        locale,
+      };
+      const res = await fetch("/api/ai/yield", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data: AiYieldEstimateResponse = await res.json();
+      setResult(data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
     }
   };
 
+  const reset = () => {
+    setSize("");
+    setLocationName("");
+    setResult(null);
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
-      <div className="text-center">
-        {/* TODO: FUSION_GENERATION_APP_PLACEHOLDER replace everything here with the actual app! */}
-        <h1 className="text-2xl font-semibold text-slate-800 flex items-center justify-center gap-3">
-          <svg
-            className="animate-spin h-8 w-8 text-slate-400"
-            viewBox="0 0 50 50"
-          >
-            <circle
-              className="opacity-30"
-              cx="25"
-              cy="25"
-              r="20"
-              stroke="currentColor"
-              strokeWidth="5"
-              fill="none"
-            />
-            <circle
-              className="text-slate-600"
-              cx="25"
-              cy="25"
-              r="20"
-              stroke="currentColor"
-              strokeWidth="5"
-              fill="none"
-              strokeDasharray="100"
-              strokeDashoffset="75"
-            />
-          </svg>
-          Generating your app...
-        </h1>
-        <p className="mt-4 text-slate-600 max-w-md">
-          Watch the chat on the left for updates that might need your attention
-          to finish generating
-        </p>
-        <p className="mt-4 hidden max-w-md">{exampleFromServer}</p>
-      </div>
-    </div>
+    <main>
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-emerald-50 via-emerald-50/70 to-white" />
+        <div className="absolute inset-x-0 -top-24 -z-10 h-72 rounded-b-[50%] bg-gradient-to-b from-emerald-200/50 to-transparent blur-2xl" />
+        <div className="container mx-auto px-4 py-10 sm:py-14">
+          <div className="mx-auto max-w-3xl text-center">
+            <motion.h1
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="text-3xl font-extrabold tracking-tight text-emerald-900 sm:text-4xl"
+            >
+              {t("brand")} 
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.05 }}
+              className="mt-3 text-base text-emerald-800/80 sm:text-lg"
+            >
+              {t("tagline")}
+            </motion.p>
+          </div>
+
+          <div className="mx-auto mt-8 grid max-w-5xl gap-6 lg:grid-cols-5">
+            <Card className="lg:col-span-3 p-6 shadow-sm">
+              <div className="grid gap-5">
+                <div className="grid gap-2">
+                  <Label className="text-base font-semibold text-emerald-900">
+                    {t("cropType")}
+                  </Label>
+                  <Select value={crop} onValueChange={setCrop}>
+                    <SelectTrigger className="h-14 text-base">
+                      <SelectValue placeholder={t("selectCrop")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {crops.map((c) => (
+                        <SelectItem key={c.value} value={c.value}>
+                          {c.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label className="text-base font-semibold text-emerald-900">
+                    {t("fieldSize")}
+                  </Label>
+                  <div className="grid grid-cols-3 gap-3">
+                    <Input
+                      inputMode="decimal"
+                      value={size}
+                      onChange={(e) => setSize(e.target.value.replace(/[^0-9.]/g, ""))}
+                      placeholder="0.00"
+                      className="col-span-2 h-14 text-lg"
+                    />
+                    <Select value={unit} onValueChange={setUnit}>
+                      <SelectTrigger className="h-14 text-base">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {units.map((u) => (
+                          <SelectItem key={u.value} value={u.value}>
+                            {u.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label className="text-base font-semibold text-emerald-900">
+                    {t("location")}
+                  </Label>
+                  <div className="flex flex-col gap-3 sm:flex-row">
+                    <Button onClick={detectLocation} variant="secondary" className="h-14 text-base">
+                      <Compass className="h-5 w-5" /> {t("detectLocation")}
+                    </Button>
+                    <div className="flex items-center gap-2 text-sm text-emerald-800/70 sm:mx-1">
+                      <span>{t("orEnterManually")}</span>
+                    </div>
+                    <Input
+                      value={locationName}
+                      onChange={(e) => setLocationName(e.target.value)}
+                      placeholder={t("locationPlaceholder")}
+                      className="h-14 text-base flex-1"
+                    />
+                  </div>
+                  {coords && (
+                    <div className="mt-1 flex items-center gap-2 text-sm text-emerald-800/70">
+                      <MapPin className="h-4 w-4" />
+                      <span>
+                        {coords.lat.toFixed(4)}, {coords.lng.toFixed(4)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-3 pt-2">
+                  <Button onClick={onSubmit} className="h-14 px-6 text-base" disabled={loading || !size}>
+                    <Sprout className="h-5 w-5" /> {loading ? t("calculating") : t("heroCta")}
+                  </Button>
+                  <Button onClick={reset} variant="ghost" className="h-14 px-6 text-base">
+                    {t("reset")}
+                  </Button>
+                </div>
+              </div>
+            </Card>
+
+            <div className="lg:col-span-2 grid gap-6">
+              <Card className="p-6 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <Wheat className="h-6 w-6 text-emerald-700" />
+                  <h3 className="text-lg font-semibold text-emerald-900">
+                    {t("resultsTitle")}
+                  </h3>
+                </div>
+                <AnimatePresence mode="wait">
+                  {result ? (
+                    <motion.div
+                      key="res"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.25 }}
+                      className="mt-4"
+                    >
+                      <div className="text-4xl font-extrabold text-emerald-900">
+                        {result.estimatedYield.toFixed(2)} t
+                      </div>
+                      <p className="mt-1 text-sm text-emerald-800/70">
+                        {result.note}
+                      </p>
+                    </motion.div>
+                  ) : (
+                    <motion.p
+                      key="placeholder"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.25 }}
+                      className="mt-4 text-sm text-emerald-800/70"
+                    >
+                      —
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+              </Card>
+
+              <Card className="p-6 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <Droplets className="h-6 w-6 text-emerald-700" />
+                  <h3 className="text-lg font-semibold text-emerald-900">
+                    {t("suggestionsTitle")}
+                  </h3>
+                </div>
+                <ul className="mt-4 grid gap-3">
+                  <li className="flex items-start gap-3 text-emerald-900">
+                    <Sprout className="mt-0.5 h-5 w-5 text-emerald-700" />
+                    <span>{t("fertilizerTips")}</span>
+                  </li>
+                  <li className="flex items-start gap-3 text-emerald-900">
+                    <Droplets className="mt-0.5 h-5 w-5 text-emerald-700" />
+                    <span>{t("irrigationTips")}</span>
+                  </li>
+                  <li className="flex items-start gap-3 text-emerald-900">
+                    <Repeat className="mt-0.5 h-5 w-5 text-emerald-700" />
+                    <span>{t("rotationTips")}</span>
+                  </li>
+                </ul>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
   );
 }
