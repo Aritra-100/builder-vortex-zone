@@ -41,11 +41,11 @@ const dictionaries: Record<Locale, Dict> = {
     gpsDenied: "Location permission denied. Please enter manually.",
   },
   bn: {
-    brand: "কৃষিফল AI",
+    brand: "Krishi Yield",
     tagline: "প্রতি কৃষকের জন্য স্মার্ট ফলন হিসাব",
     heroCta: "ফলন হিসাব করুন",
     cropType: "ফসলের ধরন",
-    selectCrop: "ফসল ন��র্বাচন করুন",
+    selectCrop: "ফসল নির্বাচন করুন",
     rice: "ধান",
     wheat: "গম",
     maize: "ভুট্টা",
