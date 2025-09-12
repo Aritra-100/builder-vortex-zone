@@ -28,3 +28,19 @@ export interface AiYieldEstimateResponse {
   unit: "tons";
   note: string;
 }
+
+export interface MarketPrice {
+  crop: string;
+  market: string; // mandi name
+  state: string;
+  date: string; // ISO date
+  unit: string; // e.g., Rs/quintal
+  min: number;
+  max: number;
+  modal: number;
+}
+
+export interface MarketPricesResponse {
+  query: string;
+  items: MarketPrice[];
+}

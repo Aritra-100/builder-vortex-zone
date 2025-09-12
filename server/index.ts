@@ -23,5 +23,8 @@ export function createServer() {
   // Placeholder AI endpoint
   app.post("/api/ai/yield", handleAiYield);
 
+  // Market prices search (mock)
+  app.get("/api/market/prices", (await import("./routes/market-prices")).handleMarketPrices);
+
   return app;
 }
