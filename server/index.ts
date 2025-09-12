@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import { handleDemo } from "./routes/demo";
 import { handleAiYield } from "./routes/ai-yield";
+import { handleMarketPrices } from "./routes/market-prices";
 
 export function createServer() {
   const app = express();
