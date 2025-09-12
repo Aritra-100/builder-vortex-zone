@@ -12,7 +12,7 @@ type I18nContextType = {
 
 const dictionaries: Record<Locale, Dict> = {
   en: {
-    brand: "KrishiYield AI",
+    brand: "Krishi Yield",
     tagline: "Smart crop yield estimation for every farmer",
     heroCta: "Calculate Yield",
     cropType: "Crop type",
@@ -45,7 +45,7 @@ const dictionaries: Record<Locale, Dict> = {
     tagline: "প্রতি কৃষকের জন্য স্মার্ট ফলন হিসাব",
     heroCta: "ফলন হিসাব করুন",
     cropType: "ফসলের ধরন",
-    selectCrop: "ফসল নির্বাচন করুন",
+    selectCrop: "ফসল ন��র্বাচন করুন",
     rice: "ধান",
     wheat: "গম",
     maize: "ভুট্টা",
