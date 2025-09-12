@@ -23,6 +23,8 @@ export default function Index() {
   const [unit, setUnit] = useState<string>("acres");
   const [locationName, setLocationName] = useState<string>("");
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [geocoding, setGeocoding] = useState(false);
+  const [geocodeError, setGeocodeError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AiYieldEstimateResponse | null>(null);
 
@@ -35,6 +37,50 @@ export default function Index() {
       { enableHighAccuracy: true, timeout: 5000 },
     );
   }, []);
+
+  // Geocode manual entry -> coords
+  useEffect(() => {
+    const q = locationName.trim();
+    if (q.length < 3) {
+      setGeocodeError(null);
+      return;
+    }
+    let cancelled = false;
+    const ctl = new AbortController();
+    const doGeocode = async () => {
+      try {
+        setGeocoding(true);
+        setGeocodeError(null);
+        const url = new URL("https://nominatim.openstreetmap.org/search");
+        url.searchParams.set("format", "json");
+        url.searchParams.set("q", q);
+        url.searchParams.set("limit", "1");
+        url.searchParams.set("addressdetails", "1");
+        const resp = await fetch(url.toString(), {
+          signal: ctl.signal,
+          headers: { "Accept-Language": locale },
+        });
+        const data = (await resp.json()) as Array<{ lat: string; lon: string }>;
+        if (!cancelled && data && data[0]) {
+          const lat = parseFloat(data[0].lat);
+          const lng = parseFloat(data[0].lon);
+          if (isFinite(lat) && isFinite(lng)) setCoords({ lat, lng });
+        } else if (!cancelled) {
+          setGeocodeError(t("locationNotFound"));
+        }
+      } catch {
+        if (!cancelled) setGeocodeError(t("locationNotFound"));
+      } finally {
+        if (!cancelled) setGeocoding(false);
+      }
+    };
+    const id = setTimeout(doGeocode, 500);
+    return () => {
+      cancelled = true;
+      ctl.abort();
+      clearTimeout(id);
+    };
+  }, [locationName, locale, t]);
 
   const crops = useMemo(
     () => [
@@ -190,12 +236,38 @@ export default function Index() {
                       className="h-14 text-base flex-1"
                     />
                   </div>
+                  {geocoding && (
+                    <div className="mt-1 text-sm text-emerald-800/70">{t("locating")}</div>
+                  )}
                   {coords && (
                     <div className="mt-1 flex items-center gap-2 text-sm text-emerald-800/70">
                       <MapPin className="h-4 w-4" />
                       <span>
                         {coords.lat.toFixed(4)}, {coords.lng.toFixed(4)}
                       </span>
+                    </div>
+                  )}
+                  {geocodeError && (
+                    <div className="mt-1 text-sm text-red-600">{geocodeError}</div>
+                  )}
+
+                  {coords && (
+                    <div className="mt-3">
+                      <Label className="text-sm font-medium text-emerald-900">{t("mapTitle")}</Label>
+                      <a
+                        href={`https://www.openstreetmap.org/?mlat=${coords.lat}&mlon=${coords.lng}#map=13/${coords.lat}/${coords.lng}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="block mt-2 overflow-hidden rounded-md border"
+                        aria-label={t("viewOnMap")}
+                      >
+                        <img
+                          src={`https://staticmap.openstreetmap.de/staticmap.php?center=${coords.lat},${coords.lng}&zoom=13&size=640x320&maptype=mapnik&markers=${coords.lat},${coords.lng},darkgreen`}
+                          alt="Map preview"
+                          className="w-full h-auto"
+                          loading="lazy"
+                        />
+                      </a>
                     </div>
                   )}
                 </div>
