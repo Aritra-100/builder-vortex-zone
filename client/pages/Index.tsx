@@ -174,6 +174,16 @@ export default function Index() {
     setResult(null);
   };
 
+  // Area in hectares (client-side, to display t/ha)
+  const areaHa = useMemo(() => {
+    const val = parseFloat(size);
+    if (!isFinite(val) || val <= 0) return 0;
+    if (unit === "hectares") return val;
+    if (unit === "acres") return val * 0.4046856422;
+    if (unit === "gunthas") return val * (0.4046856422 / 40);
+    return 0;
+  }, [size, unit]);
+
   // Voice control integration
   useEffect(() => {
     const handler = (e: any) => {
