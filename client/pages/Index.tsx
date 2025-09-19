@@ -518,10 +518,7 @@ export default function Index() {
                       className="mt-4"
                     >
                       <div className="text-4xl font-extrabold text-emerald-900">
-                        {areaHa > 0
-                          ? (result.estimatedYield / areaHa).toFixed(2) +
-                            " t/ha"
-                          : result.estimatedYield.toFixed(2) + " t"}
+                        {result.estimatedYield.toFixed(2)} t
                       </div>
                       <p className="mt-1 text-sm text-emerald-800/70">
                         {result.note}
