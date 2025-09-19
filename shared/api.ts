@@ -20,7 +20,7 @@ export interface AiYieldEstimateRequest {
     latitude?: number;
     longitude?: number;
   };
-  locale?: "en" | "bn";
+  locale?: string;
 }
 
 export interface AiYieldEstimateResponse {
