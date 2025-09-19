@@ -23,8 +23,45 @@ function toHectares(size: number, unit: AiYieldEstimateRequest["unit"]): number 
   }
 }
 
-export const handleAiYield: RequestHandler = (req, res) => {
+export const handleAiYield: RequestHandler = async (req, res) => {
   const body = req.body as AiYieldEstimateRequest;
+
+  const external = process.env.MODEL_API_URL;
+  if (external) {
+    try {
+      const ctl = new AbortController();
+      const id = setTimeout(() => ctl.abort(), 12000);
+      const r = await fetch(external, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        signal: ctl.signal,
+      });
+      clearTimeout(id);
+      if (r.ok) {
+        const data = (await r.json()) as Partial<AiYieldEstimateResponse> & { estimated_yield?: number };
+        const estimatedYield =
+          typeof data.estimatedYield === "number"
+            ? data.estimatedYield
+            : typeof (data as any).prediction === "number"
+              ? (data as any).prediction
+              : typeof data.estimated_yield === "number"
+                ? data.estimated_yield
+                : undefined;
+        if (typeof estimatedYield === "number") {
+          const resp: AiYieldEstimateResponse = {
+            estimatedYield,
+            unit: (data.unit as any) || "tons",
+            note: data.note || "Prediction from external model",
+          };
+          return res.status(200).json(resp);
+        }
+      }
+    } catch (e) {
+      // fall through to demo logic
+    }
+  }
+
   const areaHa = toHectares(Number(body.fieldSize), body.unit);
   const base = BASE_YIELD_T_PER_HA[body.cropType] ?? BASE_YIELD_T_PER_HA.others;
   const locBoost = body.location?.latitude && body.location?.longitude ? 1.03 : 1.0;
