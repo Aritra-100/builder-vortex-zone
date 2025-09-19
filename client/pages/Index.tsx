@@ -11,9 +11,21 @@ import {
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { motion, AnimatePresence } from "framer-motion";
-import { Droplets, MapPin, Sprout, Wheat, Compass, Repeat, Search } from "lucide-react";
+import {
+  Droplets,
+  MapPin,
+  Sprout,
+  Wheat,
+  Compass,
+  Repeat,
+  Search,
+} from "lucide-react";
 import { useI18n } from "@/contexts/i18n";
-import type { AiYieldEstimateRequest, AiYieldEstimateResponse, MarketPricesResponse } from "@shared/api";
+import type {
+  AiYieldEstimateRequest,
+  AiYieldEstimateResponse,
+  MarketPricesResponse,
+} from "@shared/api";
 
 export default function Index() {
   const { t, locale } = useI18n();
@@ -22,7 +34,9 @@ export default function Index() {
   const [size, setSize] = useState<string>("");
   const [unit, setUnit] = useState<string>("acres");
   const [locationName, setLocationName] = useState<string>("");
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
+    null,
+  );
   const [geocoding, setGeocoding] = useState(false);
   const [geocodeError, setGeocodeError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -35,7 +49,8 @@ export default function Index() {
   useEffect(() => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      (pos) => setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      (pos) =>
+        setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
       () => {},
       { enableHighAccuracy: true, timeout: 5000 },
     );
@@ -107,7 +122,8 @@ export default function Index() {
   const detectLocation = async () => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      (pos) => setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      (pos) =>
+        setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
       () => alert(t("gpsDenied")),
       { enableHighAccuracy: true, timeout: 10000 },
     );
@@ -153,7 +169,9 @@ export default function Index() {
     const id = setTimeout(async () => {
       try {
         setSearching(true);
-        const res = await fetch(`/api/market/prices?query=${encodeURIComponent(q)}`);
+        const res = await fetch(
+          `/api/market/prices?query=${encodeURIComponent(q)}`,
+        );
         const data: MarketPricesResponse = await res.json();
         if (!cancelled) setPrices(data);
       } catch (e) {
@@ -224,14 +242,32 @@ export default function Index() {
       const num = text.match(/([0-9]+(?:\.[0-9]+)?)/);
       if (num) {
         setSize(num[1]);
-        if (hasAny(["hectare", "hectares", t("hectares").toLowerCase()])) setUnit("hectares");
-        else if (hasAny(["acre", "acres", t("acres").toLowerCase()])) setUnit("acres");
-        else if (hasAny(["guntha", "gunthas", t("gunthas").toLowerCase()])) setUnit("gunthas");
+        if (hasAny(["hectare", "hectares", t("hectares").toLowerCase()]))
+          setUnit("hectares");
+        else if (hasAny(["acre", "acres", t("acres").toLowerCase()]))
+          setUnit("acres");
+        else if (hasAny(["guntha", "gunthas", t("gunthas").toLowerCase()]))
+          setUnit("gunthas");
       }
 
       // Price search intent
-      if (hasAny(["price", "prices", "rate", "market", "दाम", "कीमत", "भाव", "দাম", "দর", "ব��জার"])) {
-        const found = cropNames.find((c) => c.names.some((n) => text.includes(n)));
+      if (
+        hasAny([
+          "price",
+          "prices",
+          "rate",
+          "market",
+          "दाम",
+          "कीमत",
+          "भाव",
+          "দাম",
+          "দর",
+          "ব��জার",
+        ])
+      ) {
+        const found = cropNames.find((c) =>
+          c.names.some((n) => text.includes(n)),
+        );
         if (found) setPriceQuery(found.names[0]);
         else setPriceQuery(text);
         return;
@@ -244,7 +280,8 @@ export default function Index() {
     };
 
     window.addEventListener("voice.transcript", handler as EventListener);
-    return () => window.removeEventListener("voice.transcript", handler as EventListener);
+    return () =>
+      window.removeEventListener("voice.transcript", handler as EventListener);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locale, t, size]);
 
@@ -261,7 +298,7 @@ export default function Index() {
               transition={{ duration: 0.4 }}
               className="text-3xl font-extrabold tracking-tight text-emerald-900 sm:text-4xl"
             >
-              {t("brand")} 
+              {t("brand")}
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 10 }}
@@ -302,7 +339,9 @@ export default function Index() {
                     <Input
                       inputMode="decimal"
                       value={size}
-                      onChange={(e) => setSize(e.target.value.replace(/[^0-9.]/g, ""))}
+                      onChange={(e) =>
+                        setSize(e.target.value.replace(/[^0-9.]/g, ""))
+                      }
                       placeholder="0.00"
                       className="col-span-2 h-14 text-lg"
                     />
@@ -326,7 +365,11 @@ export default function Index() {
                     {t("location")}
                   </Label>
                   <div className="flex flex-col gap-3 sm:flex-row">
-                    <Button onClick={detectLocation} variant="secondary" className="h-14 text-base">
+                    <Button
+                      onClick={detectLocation}
+                      variant="secondary"
+                      className="h-14 text-base"
+                    >
                       <Compass className="h-5 w-5" /> {t("detectLocation")}
                     </Button>
                     <div className="flex items-center gap-2 text-sm text-emerald-800/70 sm:mx-1">
@@ -340,7 +383,9 @@ export default function Index() {
                     />
                   </div>
                   {geocoding && (
-                    <div className="mt-1 text-sm text-emerald-800/70">{t("locating")}</div>
+                    <div className="mt-1 text-sm text-emerald-800/70">
+                      {t("locating")}
+                    </div>
                   )}
                   {coords && (
                     <div className="mt-1 flex items-center gap-2 text-sm text-emerald-800/70">
@@ -351,12 +396,16 @@ export default function Index() {
                     </div>
                   )}
                   {geocodeError && (
-                    <div className="mt-1 text-sm text-red-600">{geocodeError}</div>
+                    <div className="mt-1 text-sm text-red-600">
+                      {geocodeError}
+                    </div>
                   )}
 
                   {coords && (
                     <div className="mt-3">
-                      <Label className="text-sm font-medium text-emerald-900">{t("mapTitle")}</Label>
+                      <Label className="text-sm font-medium text-emerald-900">
+                        {t("mapTitle")}
+                      </Label>
                       <a
                         href={`https://www.openstreetmap.org/?mlat=${coords.lat}&mlon=${coords.lng}#map=13/${coords.lat}/${coords.lng}`}
                         target="_blank"
@@ -376,10 +425,19 @@ export default function Index() {
                 </div>
 
                 <div className="flex items-center gap-3 pt-2">
-                  <Button onClick={onSubmit} className="h-14 px-6 text-base" disabled={loading || !size}>
-                    <Sprout className="h-5 w-5" /> {loading ? t("calculating") : t("heroCta")}
+                  <Button
+                    onClick={onSubmit}
+                    className="h-14 px-6 text-base"
+                    disabled={loading || !size}
+                  >
+                    <Sprout className="h-5 w-5" />{" "}
+                    {loading ? t("calculating") : t("heroCta")}
                   </Button>
-                  <Button onClick={reset} variant="ghost" className="h-14 px-6 text-base">
+                  <Button
+                    onClick={reset}
+                    variant="ghost"
+                    className="h-14 px-6 text-base"
+                  >
                     {t("reset")}
                   </Button>
                 </div>
@@ -390,7 +448,9 @@ export default function Index() {
               <Card className="p-6 shadow-sm">
                 <div className="flex items-center gap-3">
                   <Search className="h-6 w-6 text-emerald-700" />
-                  <h3 className="text-lg font-semibold text-emerald-900">{t("priceResults")}</h3>
+                  <h3 className="text-lg font-semibold text-emerald-900">
+                    {t("priceResults")}
+                  </h3>
                 </div>
                 <div className="mt-4 flex items-center gap-3">
                   <Input
@@ -401,7 +461,9 @@ export default function Index() {
                   />
                 </div>
                 {searching && (
-                  <p className="mt-3 text-sm text-emerald-800/70">{t("calculating")}</p>
+                  <p className="mt-3 text-sm text-emerald-800/70">
+                    {t("calculating")}
+                  </p>
                 )}
                 {prices && prices.items.length > 0 && (
                   <div className="mt-4 overflow-x-auto">
@@ -424,7 +486,9 @@ export default function Index() {
                             <td className="py-2 pr-4">{it.crop}</td>
                             <td className="py-2 pr-4">{it.market}</td>
                             <td className="py-2 pr-4">{it.state}</td>
-                            <td className="py-2 pr-4">{new Date(it.date).toLocaleDateString()}</td>
+                            <td className="py-2 pr-4">
+                              {new Date(it.date).toLocaleDateString()}
+                            </td>
                             <td className="py-2 pr-4">{it.min}</td>
                             <td className="py-2 pr-4">{it.modal}</td>
                             <td className="py-2 pr-4">{it.max}</td>
@@ -454,7 +518,10 @@ export default function Index() {
                       className="mt-4"
                     >
                       <div className="text-4xl font-extrabold text-emerald-900">
-                        {areaHa > 0 ? (result.estimatedYield / areaHa).toFixed(2) + " t/ha" : result.estimatedYield.toFixed(2) + " t"}
+                        {areaHa > 0
+                          ? (result.estimatedYield / areaHa).toFixed(2) +
+                            " t/ha"
+                          : result.estimatedYield.toFixed(2) + " t"}
                       </div>
                       <p className="mt-1 text-sm text-emerald-800/70">
                         {result.note}

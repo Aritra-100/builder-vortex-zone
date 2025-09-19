@@ -9,7 +9,10 @@ const BASE_YIELD_T_PER_HA: Record<string, number> = {
   others: 3.0,
 };
 
-function toHectares(size: number, unit: AiYieldEstimateRequest["unit"]): number {
+function toHectares(
+  size: number,
+  unit: AiYieldEstimateRequest["unit"],
+): number {
   if (!isFinite(size) || size <= 0) return 0;
   switch (unit) {
     case "hectares":
@@ -39,7 +42,9 @@ export const handleAiYield: RequestHandler = async (req, res) => {
       });
       clearTimeout(id);
       if (r.ok) {
-        const data = (await r.json()) as Partial<AiYieldEstimateResponse> & { estimated_yield?: number };
+        const data = (await r.json()) as Partial<AiYieldEstimateResponse> & {
+          estimated_yield?: number;
+        };
         const estimatedYield =
           typeof data.estimatedYield === "number"
             ? data.estimatedYield
@@ -64,7 +69,8 @@ export const handleAiYield: RequestHandler = async (req, res) => {
 
   const areaHa = toHectares(Number(body.fieldSize), body.unit);
   const base = BASE_YIELD_T_PER_HA[body.cropType] ?? BASE_YIELD_T_PER_HA.others;
-  const locBoost = body.location?.latitude && body.location?.longitude ? 1.03 : 1.0;
+  const locBoost =
+    body.location?.latitude && body.location?.longitude ? 1.03 : 1.0;
   const estimatedYield = Math.max(0, areaHa * base * locBoost);
 
   const note =

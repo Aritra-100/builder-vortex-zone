@@ -1,9 +1,36 @@
-import { createContext, useContext, useMemo, useState, PropsWithChildren, useEffect } from "react";
+import {
+  createContext,
+  useContext,
+  useMemo,
+  useState,
+  PropsWithChildren,
+  useEffect,
+} from "react";
 
 export type Locale =
-  | "en" | "as" | "bn" | "brx" | "doi" | "gu" | "hi" | "kn" | "ks" | "kok"
-  | "mai" | "ml" | "mni" | "mr" | "ne" | "or" | "pa" | "sa" | "sat" | "sd"
-  | "ta" | "te" | "ur";
+  | "en"
+  | "as"
+  | "bn"
+  | "brx"
+  | "doi"
+  | "gu"
+  | "hi"
+  | "kn"
+  | "ks"
+  | "kok"
+  | "mai"
+  | "ml"
+  | "mni"
+  | "mr"
+  | "ne"
+  | "or"
+  | "pa"
+  | "sa"
+  | "sat"
+  | "sd"
+  | "ta"
+  | "te"
+  | "ur";
 
 type Dict = Record<string, string>;
 
@@ -455,12 +482,17 @@ const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
 export function I18nProvider({ children }: PropsWithChildren) {
   const [locale, setLocale] = useState<Locale>(() => {
-    const stored = typeof window !== "undefined" ? (localStorage.getItem("locale") as Locale | null) : null;
+    const stored =
+      typeof window !== "undefined"
+        ? (localStorage.getItem("locale") as Locale | null)
+        : null;
     return stored || "en";
   });
 
   useEffect(() => {
-    try { localStorage.setItem("locale", locale); } catch {}
+    try {
+      localStorage.setItem("locale", locale);
+    } catch {}
   }, [locale]);
 
   const t = useMemo(() => {
@@ -469,7 +501,9 @@ export function I18nProvider({ children }: PropsWithChildren) {
   }, [locale]);
 
   return (
-    <I18nContext.Provider value={{ locale, setLocale, t, languages: LANGUAGE_LIST }}>
+    <I18nContext.Provider
+      value={{ locale, setLocale, t, languages: LANGUAGE_LIST }}
+    >
       {children}
     </I18nContext.Provider>
   );
