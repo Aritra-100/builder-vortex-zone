@@ -174,6 +174,70 @@ export default function Index() {
     setResult(null);
   };
 
+  // Voice control integration
+  useEffect(() => {
+    const handler = (e: any) => {
+      const text: string = (e.detail?.transcript || "").toLowerCase();
+      if (!text) return;
+
+      const hasAny = (arr: string[]) => arr.some((k) => text.includes(k));
+
+      // Quick actions
+      if (hasAny(["reset", "रीसेट", "রিসেট"])) {
+        reset();
+        return;
+      }
+      if (hasAny(["gps", "detect", "location", "स्थान", "লোকেশন"])) {
+        detectLocation();
+        return;
+      }
+      if (hasAny(["calculate", "गणना", "हिसाब", "গণনা", "হিসাব"])) {
+        if (size) onSubmit();
+        return;
+      }
+
+      // Set crop if mentioned
+      const cropNames = [
+        { v: "rice", names: ["rice", t("rice").toLowerCase()] },
+        { v: "wheat", names: ["wheat", t("wheat").toLowerCase()] },
+        { v: "maize", names: ["maize", t("maize").toLowerCase(), "corn"] },
+        { v: "others", names: [t("others").toLowerCase()] },
+      ];
+      for (const c of cropNames) {
+        if (c.names.some((n) => text.includes(n))) {
+          setCrop(c.v);
+          break;
+        }
+      }
+
+      // Set unit and size if mentioned
+      const num = text.match(/([0-9]+(?:\.[0-9]+)?)/);
+      if (num) {
+        setSize(num[1]);
+        if (hasAny(["hectare", "hectares", t("hectares").toLowerCase()])) setUnit("hectares");
+        else if (hasAny(["acre", "acres", t("acres").toLowerCase()])) setUnit("acres");
+        else if (hasAny(["guntha", "gunthas", t("gunthas").toLowerCase()])) setUnit("gunthas");
+      }
+
+      // Price search intent
+      if (hasAny(["price", "prices", "rate", "market", "दाम", "कीमत", "भाव", "দাম", "দর", "বাজার"])) {
+        const found = cropNames.find((c) => c.names.some((n) => text.includes(n)));
+        if (found) setPriceQuery(found.names[0]);
+        else setPriceQuery(text);
+        return;
+      }
+
+      // If nothing matched and transcript is final, use as price query fallback
+      if (e.detail?.isFinal && !priceQuery) {
+        setPriceQuery(text);
+      }
+    };
+
+    window.addEventListener("voice.transcript", handler as EventListener);
+    return () => window.removeEventListener("voice.transcript", handler as EventListener);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locale, t, size]);
+
   return (
     <main>
       <section className="relative overflow-hidden">
