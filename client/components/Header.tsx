@@ -1,6 +1,7 @@
 import { Sprout } from "lucide-react";
 import { useI18n } from "@/contexts/i18n";
 import LangSwitcher from "@/components/LangSwitcher";
+import VoiceControl from "@/components/VoiceControl";
 
 export default function Header() {
   const { t } = useI18n();
@@ -15,6 +16,7 @@ export default function Header() {
           <span>{t("brand")}</span>
         </a>
         <div className="flex items-center gap-2">
+          <VoiceControl />
           <LangSwitcher />
         </div>
       </div>
