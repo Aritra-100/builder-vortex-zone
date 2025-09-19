@@ -230,7 +230,7 @@ export default function Index() {
       }
 
       // Price search intent
-      if (hasAny(["price", "prices", "rate", "market", "दाम", "कीमत", "भाव", "দাম", "দর", "বাজার"])) {
+      if (hasAny(["price", "prices", "rate", "market", "दाम", "कीमत", "भाव", "দাম", "দর", "ব��জার"])) {
         const found = cropNames.find((c) => c.names.some((n) => text.includes(n)));
         if (found) setPriceQuery(found.names[0]);
         else setPriceQuery(text);
@@ -454,7 +454,7 @@ export default function Index() {
                       className="mt-4"
                     >
                       <div className="text-4xl font-extrabold text-emerald-900">
-                        {result.estimatedYield.toFixed(2)} t
+                        {areaHa > 0 ? (result.estimatedYield / areaHa).toFixed(2) + " t/ha" : result.estimatedYield.toFixed(2) + " t"}
                       </div>
                       <p className="mt-1 text-sm text-emerald-800/70">
                         {result.note}
